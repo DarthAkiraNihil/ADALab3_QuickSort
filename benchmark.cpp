@@ -58,7 +58,6 @@ namespace {
             std::cout << "Warning: a sort operation was not completed correctly" << std::endl;
         }
 #endif // QSORT_BENCH_VALIDATE
-        // TODO: add ifdef check
     }
 
     void _warmup() {

@@ -301,7 +301,7 @@ void quicksort_w_median(T* first, T* last, Comparator comp) {
 
 // comp = a < b
 template<typename T, comparator_t<T> Comparator>
-void quicksort(T* first, T* last, Comparator comp) {
+void quicksort_fake_recursion_elimitaion(T* first, T* last, Comparator comp) {
     if (last - first + 1 < INSERTION_SORT_LIMIT) {
         qsort_internal::ins_sort(first, last, comp);
         return;
@@ -343,7 +343,27 @@ void quicksort(T* first, T* last, Comparator comp) {
     }
 
     // quicksort(iterative_begin, iterative_end, comp);
-    quicksort(recursive_begin, recursive_end, comp);
+    quicksort_fake_recursion_elimitaion(recursive_begin, recursive_end, comp);
+}
+
+// comp = a < b
+template<typename T, comparator_t<T> Comparator>
+void quicksort(T* first, T* last, Comparator comp) {
+    while (first < last) {
+        if (last - first + 1 < INSERTION_SORT_LIMIT) {
+            qsort_internal::ins_sort(first, last, comp);
+            return;
+        }
+
+        T* pivot = qsort_internal::median_based_partition(first, last, comp);
+        if (pivot - first + 1 < last - pivot) {
+            quicksort(first, pivot, comp);
+            first = pivot + 1;
+        } else {
+            quicksort(pivot + 1, last, comp);
+            last = pivot;
+        }
+    }
 }
 
 #endif // ADALAB3_QUICKSORT_QUICKSORT_H
