@@ -8,6 +8,7 @@
 #include <data/DataGenerationType.h>
 #include <random>
 #include <vector>
+#include <array>
 
 // TODO: add tests for sorting BIG data
 
@@ -29,13 +30,13 @@ bool check_sort(T* begin, T* end, Comparator comp) {
     return true;
 }
 
-constexpr int SIZED_ARRAYS_VERIFY_RUNS = 1024;
+
 
 template<typename T, comparator_t<T> Comparator>
 const auto& qsort_f = quicksort<T, Comparator>;
 
-template<typename T, std::derived_from<DataProvider<T>> DP, comparator_t<T> Comparator>
-void run_test(DataGenerationType generation_type, Comparator cmp) {
+template<typename T, std::derived_from<DataProvider<T>> DP, comparator_t<T> Comparator, int SizeArraySize>
+void run_test_internal(DataGenerationType generation_type, Comparator cmp, const int verify_passes, const std::array<int, SizeArraySize>& sized_array_sizes) {
     DP provider{};
 
     switch (generation_type) {
@@ -51,10 +52,9 @@ void run_test(DataGenerationType generation_type, Comparator cmp) {
             return;
         }
         default: {
-            for (int sizes[] = {4,   8,   16,   32, 64, 128, 256, 512, 1024, 3,   6,    9,  27, 81,
-                                243, 729, 2187, 5,  25, 125, 625, 7,   49,   343, 2401, 11, 121};
-                 const int size: sizes) {
-                for (int _ = 0; _ < SIZED_ARRAYS_VERIFY_RUNS; _++) {
+            for (const int size: sized_array_sizes) {
+
+                for (int _ = 0; _ < verify_passes; _++) {
                     std::vector<T> data = provider.generate_array(generation_type, size);
                     T* begin = data.data();
                     T* end = begin + data.size() - 1;
@@ -64,6 +64,43 @@ void run_test(DataGenerationType generation_type, Comparator cmp) {
                 }
             }
         }
+    }
+}
+
+
+constexpr int SMALL_SIZE_VERIFY_RUNS = 1024;
+constexpr int BIG_SIZE_VERIFY_RUNS = 8;
+
+constexpr std::array small_sizes = {
+    4,   8,   16,   32, 64, 128, 256, 512, 1024, 3,   6,    9,  27, 81,
+    243, 729, 2187, 5,  25, 125, 625, 7,   49,   343, 2401, 11, 121
+};
+
+constexpr std::array big_sizes = {
+    65536 * 4,
+    65536 * 16, // 16777216, // 2147483647, // 2 ^ 16, 24, 31 - 1
+    // 14348907, // 3 ^ 15
+    // 9765625, // 5 ^ 10
+    // 282475249, // 7 ^ 10
+    // 19487171, // 11 ^ 7
+};
+
+template<typename T, std::derived_from<DataProvider<T>> DP, comparator_t<T> Comparator>
+void run_test(const DataGenerationType generation_type, Comparator cmp, const bool use_big_data = false) {
+    if (use_big_data) {
+        run_test_internal<T, DP, Comparator, big_sizes.size()>(
+            generation_type,
+            cmp,
+            BIG_SIZE_VERIFY_RUNS,
+            big_sizes
+        );
+    } else {
+        run_test_internal<T, DP, Comparator, small_sizes.size()>(
+            generation_type,
+            cmp,
+            SMALL_SIZE_VERIFY_RUNS,
+            small_sizes
+        );
     }
 }
 

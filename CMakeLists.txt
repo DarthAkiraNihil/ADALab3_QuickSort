@@ -27,6 +27,16 @@ add_executable(
         data/DataGenerationType.h
 )
 add_executable(
+        ADALab3_QuickSort_ReverseBenchmark
+        benchmark.cpp
+        data/DataProvider.h
+        data/StringDataProvider.h
+        data/IntDataProvider.h
+        data/PodDataProvider.h
+        data/DataGenerationType.h
+)
+
+add_executable(
     ADALab3_QuickSort_StrictBenchmark
         benchmark.cpp
         data/DataProvider.h
@@ -55,8 +65,10 @@ target_link_libraries(
 target_include_directories(ADALab3_QuickSort_Tests PRIVATE "${CMAKE_SOURCE_DIR}")
 target_include_directories(ADALab3_QuickSort_Benchmark PRIVATE "${CMAKE_SOURCE_DIR}")
 target_include_directories(ADALab3_QuickSort_StrictBenchmark PRIVATE "${CMAKE_SOURCE_DIR}")
+target_include_directories(ADALab3_QuickSort_ReverseBenchmark PRIVATE "${CMAKE_SOURCE_DIR}")
 
 target_compile_definitions(ADALab3_QuickSort_StrictBenchmark PUBLIC QSORT_BENCH_VALIDATE)
+target_compile_definitions(ADALab3_QuickSort_ReverseBenchmark PUBLIC QSORT_BENCH_USE_REVERSE_SORT)
 
 include(GoogleTest)
 #gtest_add_tests(TARGET ADALab3_QuickSort_Tests)

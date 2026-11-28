@@ -8,7 +8,7 @@
 #include <vector>
 #include <stack>
 
-constexpr int INSERTION_SORT_LIMIT = 52;
+constexpr int INSERTION_SORT_LIMIT = 16; // old
 
 template<typename Comparator, typename T>
 concept comparator_t = std::is_invocable_v<Comparator, const T&, const T&> &&
@@ -86,6 +86,7 @@ namespace qsort_internal {
     template<typename T, comparator_t<T> Comparator>
     T* median_based_partition(T* first, T* last, Comparator comp) {
         const int l = last - first + 1;
+
         T* mid = first + l / 2;
         T pivot = *qsort_internal::median(first, mid, last, comp);
 
@@ -348,8 +349,40 @@ void quicksort_fake_recursion_elimitaion(T* first, T* last, Comparator comp) {
 
 // comp = a < b
 template<typename T, comparator_t<T> Comparator>
+void quicksort_no_insertion(T* first, T* last, Comparator comp) {
+    while (first < last) {
+        switch (last - first + 1) {
+            case 2: {
+                if (comp(*last, *first)) {
+                    T t = std::move(*first);
+                    *first = std::move(*last);
+                    *last = std::move(t);
+                }
+            }
+            case 1:
+            case 0: {
+                return;
+            }
+            default: {
+                T* pivot = qsort_internal::median_based_partition(first, last, comp);
+                if (pivot - first + 1 < last - pivot) {
+                    quicksort(first, pivot, comp);
+                    first = pivot + 1;
+                } else {
+                    quicksort(pivot + 1, last, comp);
+                    last = pivot;
+                }
+            }
+        }
+    }
+}
+
+
+// comp = a < b
+template<typename T, comparator_t<T> Comparator>
 void quicksort(T* first, T* last, Comparator comp) {
     while (first < last) {
+        // std::cout << "FI:" << first << ", LA: " << last << "LE: " << last - first + 1 << std::endl;
         if (last - first + 1 < INSERTION_SORT_LIMIT) {
             qsort_internal::ins_sort(first, last, comp);
             return;

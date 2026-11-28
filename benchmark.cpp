@@ -36,7 +36,7 @@ namespace {
     }
 
     template<typename T, comparator_t<T> Comparator>
-    const auto& qsort_f = quicksort_w_median<T, Comparator>;
+    const auto& qsort_f = quicksort_no_insertion<T, Comparator>;
 
     template<typename T, comparator_t<T> Comparator>
     const auto& insertion_sort_f = insertion_sort<T, Comparator>;
@@ -47,9 +47,9 @@ namespace {
     constexpr int WARMUP_CYCLES = 1024 * 1024;
 
     template<typename T, std::derived_from<DataProvider<T>> DP, comparator_t<T> Comparator>
-    void _warmup_subcycle(Comparator comp, DP& provider) {
+    void _warmup_subcycle(Comparator comp, DP& provider, const DataGenerationType generationType) {
         const int size = size_dist(rng);
-        std::vector<T> data = provider.generate_array(DataGenerationType::Random, size);
+        std::vector<T> data = provider.generate_array(generationType, size);
         T* begin = data.data();
         T* end = data.data() + size - 1;
         qsort_f<T, Comparator>(begin, end, comp);
@@ -60,22 +60,22 @@ namespace {
 #endif // QSORT_BENCH_VALIDATE
     }
 
-    void _warmup() {
+    void _warmup(const DataGenerationType generationType) {
         IntDataProvider int_provider{};
         StringDataProvider string_provider{};
         PodmanDataProvider podman_provider{};
         for (int _ = 0; _ < WARMUP_CYCLES; ++_) {
-            _warmup_subcycle<int, IntDataProvider>(int_comparator, int_provider);
-            _warmup_subcycle<std::string, StringDataProvider>(string_comparator, string_provider);
-            _warmup_subcycle<Podman, PodmanDataProvider>(podman_comparator, podman_provider);
+            _warmup_subcycle<int, IntDataProvider>(int_comparator, int_provider, generationType);
+            _warmup_subcycle<std::string, StringDataProvider>(string_comparator, string_provider, generationType);
+            _warmup_subcycle<Podman, PodmanDataProvider>(podman_comparator, podman_provider, generationType);
         }
     }
 
     struct BenchmarkResult {
-            u64 cycles_int;
-            u64 cycles_string;
-            u64 cycles_podman;
-            u64 cycles_average;
+        u64 cycles_int;
+        u64 cycles_string;
+        u64 cycles_podman;
+        u64 cycles_average;
     };
 
     void add_running_average(u64& dst, const u64& src, u64& rem, const int cycle) {
@@ -101,8 +101,8 @@ namespace {
     constexpr int BENCHMARK_CYCLES = 1024 * 256;
 
     template<typename T, DataProviderType<T> DP, comparator_t<T> Comparator>
-    u64 _subbenchmark_insertion_sort(int size, Comparator cmp, DP& provider) {
-        std::vector<T> data = provider.generate_array(DataGenerationType::Random, size);
+    u64 _subbenchmark_insertion_sort(int size, Comparator cmp, DP& provider, const DataGenerationType generationType) {
+        std::vector<T> data = provider.generate_array(generationType, size);
 
         T* begin = data.data();
         T* end = begin + size - 1;
@@ -117,7 +117,7 @@ namespace {
         return __rdtsc() - start;
     }
 
-    BenchmarkResult _benchmark_insertion_sort(const int size) {
+    BenchmarkResult _benchmark_insertion_sort(const int size, const DataGenerationType generationType) {
 
         BenchmarkResult result{.cycles_int = 0, .cycles_string = 0, .cycles_podman = 0, .cycles_average = 0};
 
@@ -128,15 +128,15 @@ namespace {
         PodmanDataProvider podman_provider{};
 
         for (int _ = 0; _ < BENCHMARK_CYCLES; ++_) {
-            u64 int_time = _subbenchmark_insertion_sort<int, IntDataProvider>(size, int_comparator, int_provider);
+            u64 int_time = _subbenchmark_insertion_sort<int, IntDataProvider>(size, int_comparator, int_provider, generationType);
             add_running_average(result.cycles_int, int_time, irem, _);
 
             u64 string_time =
-                _subbenchmark_insertion_sort<std::string, StringDataProvider>(size, string_comparator, string_provider);
+                _subbenchmark_insertion_sort<std::string, StringDataProvider>(size, string_comparator, string_provider, generationType);
             add_running_average(result.cycles_string, string_time, srem, _);
 
             u64 pod_time =
-                _subbenchmark_insertion_sort<Podman, PodmanDataProvider>(size, podman_comparator, podman_provider);
+                _subbenchmark_insertion_sort<Podman, PodmanDataProvider>(size, podman_comparator, podman_provider, generationType);
             add_running_average(result.cycles_podman, pod_time, prem, _);
         }
 
@@ -149,8 +149,8 @@ namespace {
     }
 
     template<typename T, DataProviderType<T> DP, comparator_t<T> Comparator>
-    u64 _subbenchmark_quicksort(int size, Comparator cmp, DP& provider) {
-        std::vector<T> data = provider.generate_array(DataGenerationType::Random, size);
+    u64 _subbenchmark_quicksort(int size, Comparator cmp, DP& provider, const DataGenerationType generationType) {
+        std::vector<T> data = provider.generate_array(generationType, size);
 
         T* begin = data.data();
         T* end = begin + size - 1;
@@ -165,7 +165,7 @@ namespace {
         return __rdtsc() - start;
     }
 
-    BenchmarkResult _benchmark_quicksort(const int size) {
+    BenchmarkResult _benchmark_quicksort(const int size, const DataGenerationType generationType) {
 
         BenchmarkResult result{.cycles_int = 0, .cycles_string = 0, .cycles_podman = 0, .cycles_average = 0};
 
@@ -176,15 +176,15 @@ namespace {
         PodmanDataProvider podman_provider{};
 
         for (int _ = 0; _ < BENCHMARK_CYCLES; ++_) {
-            u64 int_time = _subbenchmark_quicksort<int, IntDataProvider>(size, int_comparator, int_provider);
+            u64 int_time = _subbenchmark_quicksort<int, IntDataProvider>(size, int_comparator, int_provider, generationType);
             add_running_average(result.cycles_int, int_time, irem, _);
 
             u64 string_time =
-                _subbenchmark_quicksort<std::string, StringDataProvider>(size, string_comparator, string_provider);
+                _subbenchmark_quicksort<std::string, StringDataProvider>(size, string_comparator, string_provider, generationType);
             add_running_average(result.cycles_string, string_time, srem, _);
 
             u64 pod_time =
-                _subbenchmark_quicksort<Podman, PodmanDataProvider>(size, podman_comparator, podman_provider);
+                _subbenchmark_quicksort<Podman, PodmanDataProvider>(size, podman_comparator, podman_provider, generationType);
             add_running_average(result.cycles_podman, pod_time, prem, _);
         }
 
@@ -197,7 +197,15 @@ namespace {
     }
 
     int benchmark() {
-        std::ofstream report("benchmark_report.csv");
+        #ifndef QSORT_BENCH_USE_REVERSE_SORT
+
+        std::ofstream report("benchmark_report_real_fix.csv");
+        constexpr DataGenerationType generationType = DataGenerationType::Random;
+        #else
+        std::ofstream report("benchmark_report_reverse_sort.csv");
+        constexpr DataGenerationType generationType = DataGenerationType::Reverse;
+        #endif
+
         if (!report.good()) {
             std::cout << "Fatal error: report file could not be opened. Session terminated" << std::endl;
             return 1;
@@ -207,13 +215,18 @@ namespace {
                   "pod,quick_average"
                << std::endl;
 
+        #ifdef QSORT_BENCH_USE_REVERSE_SORT
+        std::cout << "Using reverse generated data" << std::endl;
+        #else
+        std::cout << "Using random generated data" << std::endl;
+        #endif
         std::cout << "Warming up..." << std::endl;
-        _warmup();
+        _warmup(generationType);
 
         for (int size = 3; size <= 128; ++size) {
             std::cout << "Running benchmark for size=" << size << std::endl;
-            const BenchmarkResult insertion_sort_benchmark = _benchmark_insertion_sort(size);
-            const BenchmarkResult quicksort_benchmark = _benchmark_quicksort(size);
+            const BenchmarkResult insertion_sort_benchmark = _benchmark_insertion_sort(size, generationType);
+            const BenchmarkResult quicksort_benchmark = _benchmark_quicksort(size, generationType);
 
             report << size << "," << insertion_sort_benchmark.cycles_int << ","
                    << insertion_sort_benchmark.cycles_string << "," << insertion_sort_benchmark.cycles_podman << ","

@@ -61,3 +61,58 @@ TEST(QuickSortTests_Pod, TestsWithExtremeValues) {
 TEST(QuickSortTests_Pod, TestsWithStabilityCheck) {
     run_test<Podman, PodmanDataProvider>(DataGenerationType::StabilityCheck, podman_comparator);
 }
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithRandom) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::Random, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithAllIsTheSame) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::AllIsTheSame, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithSorted) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::Sorted, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithAlmostSorted) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::AlmostSorted, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithReverse) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::Reverse, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithReverseAlmostSorted) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::ReverseAlmostSorted, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithEmpty) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::Empty, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithSingle) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::Single, podman_comparator, true);
+}
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithPair) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::Pair, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithFewUnique) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::FewUnique, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithSawTooth) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::SawTooth, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithNegativeAndZero) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::NegativeAndZero, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithExtremeValues) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::ExtremeValues, podman_comparator, true);
+}
+
+TEST(QuickSortTestsWithBIGData_Pod, TestsWithStabilityCheck) {
+    run_test<Podman, PodmanDataProvider>(DataGenerationType::StabilityCheck, podman_comparator, true);
+}
